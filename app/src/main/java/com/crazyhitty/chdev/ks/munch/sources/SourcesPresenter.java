@@ -2,7 +2,9 @@ package com.crazyhitty.chdev.ks.munch.sources;
 
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -103,16 +105,8 @@ public class SourcesPresenter implements ISourcePresenter, OnSourceSavedListener
 
                 final MaterialDialog categoryDialog = new MaterialDialog.Builder(context)
                         .title(R.string.add_category)
-                        .adapter(new CategoryListAdapter(context, categoryItems),
-                                new MaterialDialog.ListCallback() {
-                                    @Override
-                                    public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                                        //Toast.makeText(HomeActivity.this, "Clicked item " + which, Toast.LENGTH_SHORT).show();
-                                        mImgCategory.setImageDrawable(categoryItems.get(which).getCategoryImg());
-                                        mTxtCategory.setText(categoryItems.get(which).getCategoryName());
-                                        dialog.dismiss();
-                                    }
-                                })
+                        .adapter(new CategoryListAdapter(context, categoryItems,mTxtCategory,mImgCategory,null), null)
+                        .autoDismiss(true)
                         .build();
                 categoryDialog.show();
             }

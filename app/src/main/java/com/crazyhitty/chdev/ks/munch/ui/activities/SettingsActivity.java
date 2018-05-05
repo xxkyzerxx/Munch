@@ -12,6 +12,7 @@ import android.preference.MultiSelectListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -108,6 +109,11 @@ public class SettingsActivity extends AppCompatActivity implements FileChooserDi
     @Override
     public void onFileSelection(FileChooserDialog dialog, File file) {
         ImportOpmlPresenter.onFileSelected(file);
+    }
+
+    @Override
+    public void onFileChooserDismissed(@NonNull FileChooserDialog dialog) {
+
     }
 
     public static class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener, ICuratedFeedsView, ISourceView, IImportOpmlView {

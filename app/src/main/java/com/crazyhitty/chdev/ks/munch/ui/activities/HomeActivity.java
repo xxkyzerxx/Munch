@@ -305,17 +305,7 @@ public class HomeActivity extends AppCompatActivity implements ISourceView, Floa
 
         final MaterialDialog categoryDialog = new MaterialDialog.Builder(HomeActivity.this)
                 .title(R.string.add_category)
-                .adapter(new CategoryListAdapter(HomeActivity.this, categoryItems),
-                        new MaterialDialog.ListCallback() {
-                            @Override
-                            public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                                //Toast.makeText(HomeActivity.this, "Clicked item " + which, Toast.LENGTH_SHORT).show();
-                                imgCategory.setImageDrawable(categoryItems.get(which).getCategoryImg());
-                                txtCategory.setText(categoryItems.get(which).getCategoryName());
-                                categoryLayout.setVisibility(View.VISIBLE);
-                                dialog.dismiss();
-                            }
-                        })
+                .adapter(new CategoryListAdapter(HomeActivity.this, categoryItems,txtCategory,imgCategory,categoryLayout ),null)
                 .build();
         categoryDialog.show();
     }
