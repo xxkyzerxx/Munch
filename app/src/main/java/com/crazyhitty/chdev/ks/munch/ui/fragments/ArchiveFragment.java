@@ -18,6 +18,7 @@ import com.crazyhitty.chdev.ks.munch.archive.IArchiveView;
 import com.crazyhitty.chdev.ks.munch.models.FeedItem;
 import com.crazyhitty.chdev.ks.munch.ui.adapters.FeedsRecyclerViewAdapter;
 import com.crazyhitty.chdev.ks.munch.utils.FadeAnimationUtil;
+import com.facebook.ads.NativeAdsManager;
 
 import java.util.List;
 
@@ -37,6 +38,13 @@ public class ArchiveFragment extends Fragment implements IArchiveView {
     private ArchivePresenter mArchivePresenter;
     private RecyclerView.LayoutManager mLayoutManager;
     private FeedsRecyclerViewAdapter mFeedsRecyclerViewAdapter;
+
+    private NativeAdsManager mAds;
+
+    public ArchiveFragment(NativeAdsManager mAds) {
+        this.mAds = mAds;
+    }
+
 
     @Nullable
     @Override
@@ -77,7 +85,7 @@ public class ArchiveFragment extends Fragment implements IArchiveView {
             linearLayoutEmptyArchive.setVisibility(View.INVISIBLE);
         }
 
-        mFeedsRecyclerViewAdapter = new FeedsRecyclerViewAdapter(getActivity(), feedItems);
+        mFeedsRecyclerViewAdapter = new FeedsRecyclerViewAdapter(getActivity(), feedItems,mAds);
         recyclerViewFeeds.setAdapter(mFeedsRecyclerViewAdapter);
     }
 

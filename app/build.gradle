@@ -47,4 +47,5 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:3.6.1'
     implementation 'org.jsoup:jsoup:1.7.2'
     implementation 'com.squareup.okhttp3:okhttp:3.0.0-RC1'
+    implementation 'com.facebook.android:audience-network-sdk:4.+'
 }

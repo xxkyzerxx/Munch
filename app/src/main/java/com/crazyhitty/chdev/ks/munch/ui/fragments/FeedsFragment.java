@@ -28,6 +28,8 @@ import com.crazyhitty.chdev.ks.munch.services.SyncArticlesIntentService;
 import com.crazyhitty.chdev.ks.munch.ui.adapters.FeedsRecyclerViewAdapter;
 import com.crazyhitty.chdev.ks.munch.utils.FadeAnimationUtil;
 import com.crazyhitty.chdev.ks.munch.utils.NetworkConnectionUtil;
+import com.facebook.ads.NativeAd;
+import com.facebook.ads.NativeAdsManager;
 
 import java.util.List;
 
@@ -52,11 +54,14 @@ public class FeedsFragment extends Fragment implements IFeedsView, SwipeRefreshL
 
     private String mSource;
 
+    private static NativeAdsManager mAds;
+
     public void setSource(String mSource) {
         this.mSource = mSource;
     }
 
-    public FeedsFragment setInstance(String source) {
+    public FeedsFragment setInstance(String source, NativeAdsManager mAds) {
+        this.mAds = mAds;
         FeedsFragment feedsFragment = new FeedsFragment();
         feedsFragment.setSource(source);
         return feedsFragment;
@@ -138,7 +143,7 @@ public class FeedsFragment extends Fragment implements IFeedsView, SwipeRefreshL
             if (recyclerViewFeeds.getVisibility() != View.VISIBLE) {
                 new FadeAnimationUtil(getActivity()).fadeInAlpha(recyclerViewFeeds, 500);
             }
-            mFeedsRecyclerViewAdapter = new FeedsRecyclerViewAdapter(getActivity(), feedItems);
+            mFeedsRecyclerViewAdapter = new FeedsRecyclerViewAdapter(getActivity(), feedItems,mAds);
             recyclerViewFeeds.setAdapter(mFeedsRecyclerViewAdapter);
         } else {
             // this will only run if feeds are cleared by the user
@@ -147,7 +152,7 @@ public class FeedsFragment extends Fragment implements IFeedsView, SwipeRefreshL
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mFeedsRecyclerViewAdapter = new FeedsRecyclerViewAdapter(getActivity(), null);
+                    mFeedsRecyclerViewAdapter = new FeedsRecyclerViewAdapter(getActivity(), null,mAds);
                     recyclerViewFeeds.setAdapter(mFeedsRecyclerViewAdapter);
                 }
             }, 500);
@@ -221,4 +226,5 @@ public class FeedsFragment extends Fragment implements IFeedsView, SwipeRefreshL
         }
         return super.onOptionsItemSelected(item);
     }
+
 }

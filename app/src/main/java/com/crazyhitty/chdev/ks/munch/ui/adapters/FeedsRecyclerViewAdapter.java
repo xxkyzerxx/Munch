@@ -9,6 +9,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,6 +19,12 @@ import com.crazyhitty.chdev.ks.munch.models.FeedItem;
 import com.crazyhitty.chdev.ks.munch.models.SettingsPreferences;
 import com.crazyhitty.chdev.ks.munch.ui.activities.ArticleActivity;
 import com.crazyhitty.chdev.ks.munch.utils.FadeAnimationUtil;
+import com.facebook.ads.Ad;
+import com.facebook.ads.AdError;
+import com.facebook.ads.AdListener;
+import com.facebook.ads.MediaView;
+import com.facebook.ads.NativeAd;
+import com.facebook.ads.NativeAdsManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +33,7 @@ import java.util.Random;
 /**
  * Created by Kartik_ch on 11/5/2015.
  */
-public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecyclerViewAdapter.FeedsViewHolder> {
+public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
     private List<FeedItem> mFeedItems;
@@ -34,41 +41,93 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     private int mCurrentCircleBgId = -1;
     private int mLastPosition = -1;
 
-    public FeedsRecyclerViewAdapter(Context mContext, List<FeedItem> mFeedItems) {
+    private NativeAdsManager mAds;
+    private NativeAd mAd = null;
+    private int POST_TYPE = 1;
+    private int AD_TYPE = 2;
+    public static int AD_FORM = 1;
+
+    public FeedsRecyclerViewAdapter(Context mContext, List<FeedItem> mFeedItems, NativeAdsManager ads) {
         clear();
         this.mContext = mContext;
         this.mFeedItems = mFeedItems;
         mColorDrawables = getColors();
+        mAds = ads;
     }
 
     @Override
-    public FeedsRecyclerViewAdapter.FeedsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.feed_item_small, parent, false);
-        FeedsViewHolder viewHolder = new FeedsViewHolder(view);
-        return viewHolder;
-    }
-
-    @Override
-    public void onBindViewHolder(FeedsRecyclerViewAdapter.FeedsViewHolder holder, int position) {
-        holder.mTxtTitle.setText(mFeedItems.get(position).getItemTitle());
-        holder.mTxtSource.setText(mFeedItems.get(position).getItemSource());
-        holder.mTxtSourceUrl.setText(mFeedItems.get(position).getItemSourceUrl());
-        holder.mTxtCategory.setText(mFeedItems.get(position).getItemCategory());
-        holder.mTxtPubDate.setText(mFeedItems.get(position).getItemPubDate());
-        //holder.mImgCategory.setImageResource(mFeedItems.get(position).getItemCategoryImgId());
-        holder.mImgCategory.setImageResource(new Categories(mContext).getDrawableId(mFeedItems.get(position).getItemCategory()));
-
-        //get a randomized background resource id from a set of available drawables
-        mCurrentCircleBgId = mColorDrawables.get(getRandomIndex(0, mColorDrawables.size() - 1));
-        //set this drawable in feeditem
-        mFeedItems.get(position).setItemBgId(mCurrentCircleBgId);
-        //set the retrieved drawable into the category image view background
-        holder.mImgCategoryBg.setImageResource(mCurrentCircleBgId);
-
-        //add fading animation as the items start loading
-        if (SettingsPreferences.FEEDS_RECYCLER_VIEW_ANIMATION) {
-            setAnimation(holder.mItemView, position);
+    public int getItemViewType(int position) {
+        if (position == 0) {
+            return AD_TYPE;
         }
+        else {
+            return POST_TYPE;
+        }
+    }
+
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if (viewType == AD_TYPE) {
+            View inflatedView;
+            if (AD_FORM == 2) {
+                inflatedView = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.ad_unit2, parent, false);
+            }
+            else {
+                inflatedView = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.ad_unit, parent, false);
+            }
+            return new AdHolder(inflatedView);
+        }
+        else {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.feed_item_small, parent, false);
+            FeedsViewHolder viewHolder = new FeedsViewHolder(view);
+            return viewHolder;
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        if (holder.getItemViewType() == AD_TYPE) {
+            if (mAd != null) {
+                ((AdHolder)holder).bindView(mAd);
+            }
+            else if (mAds != null && mAds.isLoaded()) {
+                mAd = mAds.nextNativeAd();
+                ((AdHolder)holder).bindView(mAd);
+            }
+            else {
+                ((AdHolder)holder).bindView(null);
+            }
+        }
+        else {
+            int index = position;
+            if (index != 0) {
+                index--;
+            }
+            FeedsViewHolder holder1 = (FeedsViewHolder)holder;
+            holder1.mTxtTitle.setText(mFeedItems.get(index).getItemTitle());
+            holder1.mTxtSource.setText(mFeedItems.get(index).getItemSource());
+            holder1.mTxtSourceUrl.setText(mFeedItems.get(index).getItemSourceUrl());
+            holder1.mTxtCategory.setText(mFeedItems.get(index).getItemCategory());
+            holder1.mTxtPubDate.setText(mFeedItems.get(index).getItemPubDate());
+            //holder.mImgCategory.setImageResource(mFeedItems.get(position).getItemCategoryImgId());
+            holder1.mImgCategory.setImageResource(new Categories(mContext).getDrawableId(mFeedItems.get(index).getItemCategory()));
+
+            //get a randomized background resource id from a set of available drawables
+            mCurrentCircleBgId = mColorDrawables.get(getRandomIndex(0, mColorDrawables.size() - 1));
+            //set this drawable in feeditem
+            mFeedItems.get(index).setItemBgId(mCurrentCircleBgId);
+            //set the retrieved drawable into the category image view background
+            holder1.mImgCategoryBg.setImageResource(mCurrentCircleBgId);
+
+            //add fading animation as the items start loading
+            if (SettingsPreferences.FEEDS_RECYCLER_VIEW_ANIMATION) {
+                setAnimation(holder1.mItemView, index);
+            }
+        }
+
+
     }
 
     private void setAnimation(View view, int position) {
@@ -84,14 +143,16 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         if (mFeedItems == null) {
             return 0;
         }
-        return mFeedItems.size();
+        return mFeedItems.size() + 1;
     }
 
     //use to remove the sticky animation
     @Override
-    public void onViewDetachedFromWindow(FeedsViewHolder holder) {
+    public void onViewDetachedFromWindow(RecyclerView.ViewHolder holder) {
         super.onViewDetachedFromWindow(holder);
-        holder.mItemView.clearAnimation();
+        if (holder.getItemViewType() != AD_TYPE) {
+            ((FeedsViewHolder)holder).mItemView.clearAnimation();
+        }
     }
 
     public void addItem(FeedItem feedItem, int position) {
@@ -164,6 +225,8 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private Bundle getFeedItemBundle(int position) {
+            if (position != 0)
+                position--;
             FeedItem feedItem = mFeedItems.get(position);
             Bundle bundle = new Bundle();
             bundle.putString("title", feedItem.getItemTitle());
@@ -188,6 +251,92 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             mTxtSourceUrl.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsPreferences.SOURCE_URL_SIZE);
             mTxtPubDate.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsPreferences.FEED_PUBLISH_DATE_SIZE);
             mTxtTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsPreferences.FEED_TITLE_SIZE);
+        }
+
+    }
+
+    public static class AdHolder extends RecyclerView.ViewHolder {
+        private MediaView mAdMedia;
+        private ImageView mAdIcon;
+        private TextView mAdTitle;
+        private TextView mAdBody;
+        private TextView mAdSocialContext;
+        private Button mAdCallToAction;
+
+        public AdHolder(View view) {
+            super(view);
+
+            if (AD_FORM == 2) {
+                mAdMedia = (MediaView) view.findViewById(R.id.native_ad_media);
+                mAdSocialContext = (TextView) view.findViewById(R.id.native_ad_social_context);
+                mAdCallToAction = (Button)view.findViewById(R.id.native_ad_call_to_action);
+            }
+            else {
+                mAdMedia = (MediaView) view.findViewById(R.id.native_ad_media);
+                mAdTitle = (TextView) view.findViewById(R.id.native_ad_title);
+                mAdBody = (TextView) view.findViewById(R.id.native_ad_body);
+                mAdSocialContext = (TextView) view.findViewById(R.id.native_ad_social_context);
+                mAdCallToAction = (Button)view.findViewById(R.id.native_ad_call_to_action);
+                mAdIcon = (ImageView)view.findViewById(R.id.native_ad_icon);
+
+            }
+        }
+
+        public void bindView(NativeAd ad) {
+            if (ad == null) {
+                if (AD_FORM == 2) {
+                    mAdSocialContext.setText("No Ad");
+                }
+                else {
+                    mAdTitle.setText("No Ad");
+                    mAdBody.setText("Ad is not loaded.");
+                }
+            }
+            else {
+                if (AD_FORM == 2) {
+                    mAdSocialContext.setText(ad.getAdSocialContext());
+                    mAdCallToAction.setText(ad.getAdCallToAction());
+                    mAdMedia.setNativeAd(ad);
+                }
+                else {
+                    mAdTitle.setText(ad.getAdTitle());
+                    mAdBody.setText(ad.getAdBody());
+                    mAdSocialContext.setText(ad.getAdSocialContext());
+                    mAdCallToAction.setText(ad.getAdCallToAction());
+                    mAdMedia.setNativeAd(ad);
+                    NativeAd.Image adIcon = ad.getAdIcon();
+                    NativeAd.downloadAndDisplayImage(adIcon, mAdIcon);
+
+                    // Register the Title and CTA button to listen for clicks.
+                    List<View> clickableViews = new ArrayList<>();
+                    clickableViews.add(mAdTitle);
+                    clickableViews.add(mAdCallToAction);
+                    ad.registerViewForInteraction(this.itemView,clickableViews);
+                }
+            }
+
+            ad.setAdListener(new AdListener() {
+
+                @Override
+                public void onError(Ad ad, AdError error) {
+                    // Ad error callback
+                }
+
+                @Override
+                public void onAdLoaded(Ad ad) {
+                    // Ad loaded callback
+                }
+
+                @Override
+                public void onAdClicked(Ad ad) {
+                    // Ad clicked callback
+                }
+
+                @Override
+                public void onLoggingImpression(Ad ad) {
+                    // Ad impression logged callback
+                }
+            });
         }
 
     }

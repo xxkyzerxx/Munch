@@ -42,6 +42,7 @@ import com.crazyhitty.chdev.ks.munch.ui.fragments.ManageSourcesFragment;
 import com.crazyhitty.chdev.ks.munch.utils.AnimationUtil;
 import com.crazyhitty.chdev.ks.munch.utils.DateUtil;
 import com.crazyhitty.chdev.ks.munch.utils.FadeAnimationUtil;
+import com.facebook.ads.NativeAdsManager;
 import com.github.clans.fab.FloatingActionMenu;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
@@ -94,9 +95,13 @@ public class HomeActivity extends AppCompatActivity implements ISourceView, Floa
     private SourceItem mSourceItem;
     private boolean mAddFeedStatus = false;
 
+    private NativeAdsManager mAds;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        LoadAds();
 
         //initialize settings
         SettingsPreferences.init(HomeActivity.this);
@@ -165,7 +170,7 @@ public class HomeActivity extends AppCompatActivity implements ISourceView, Floa
                 mSourcesPresenter.getSources();
                 //new FadeAnimationUtil(HomeActivity.this).fadeInAlpha(spinnerSources, 500);
                 spinnerSources.setVisibility(View.VISIBLE);
-                fragment = new FeedsFragment().setInstance("all_sources");
+                fragment = new FeedsFragment().setInstance("all_sources",mAds);
                 fab.showMenuButton(true);
                 txtToolbarTitle.setText("Add Feed");
                 txtToolbarTitle.setVisibility(View.INVISIBLE);
@@ -179,7 +184,7 @@ public class HomeActivity extends AppCompatActivity implements ISourceView, Floa
             mNavPosition = 1;
         } else if (id == R.id.nav_archive) {
             hideSpinnerAndFab();
-            fragment = new ArchiveFragment();
+            fragment = new ArchiveFragment(mAds);
             showTitle("Archive");
             mNavPosition = 2;
         } else if (id == R.id.nav_settings) {
@@ -315,9 +320,9 @@ public class HomeActivity extends AppCompatActivity implements ISourceView, Floa
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         //Toast.makeText(HomeActivity.this, "Item selected: " + adapterView.getItemAtPosition(i), Toast.LENGTH_SHORT).show();
         if (i == 0) {
-            loadFragment(new FeedsFragment().setInstance("all_sources"));
+            loadFragment(new FeedsFragment().setInstance("all_sources",mAds));
         } else {
-            loadFragment(new FeedsFragment().setInstance(adapterView.getItemAtPosition(i).toString()));
+            loadFragment(new FeedsFragment().setInstance(adapterView.getItemAtPosition(i).toString(),mAds));
         }
     }
 
@@ -477,6 +482,13 @@ public class HomeActivity extends AppCompatActivity implements ISourceView, Floa
             super.onBackPressed();
         }
     }
+
+    public void LoadAds() {
+        String placement_id = "PLACEMENT_ID";
+        mAds = new NativeAdsManager(this, placement_id, 1);
+        mAds.loadAds();
+    }
+
 
     /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
